@@ -2,16 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Author, Book } = require('../models');
 
-// GET /api/authors
-// TODO: Get all authors
-router.get('/', async (req, res) => {
-  try {
-    // TODO: Implement
-    res.json({ message: 'Not implemented yet' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+
 
 // GET /api/authors/:id
 // Get single author with their books
@@ -84,7 +75,7 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Author not found' });
     }
 
-    // update only fields that are provided
+    // update fields for if they are provided
     author.name = name ?? author.name;
     author.email = email ?? author.email;
     author.bio = bio ?? author.bio;
