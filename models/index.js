@@ -1,13 +1,20 @@
+const { sequelize } = require('../config/database');
 const Author = require('./Author');
 const Book = require('./Book');
-const sequelize = require('../config/database');
 
-// TODO: Set up relationships
-// Author hasMany Books (with cascade delete)
-// Book belongsTo Author
+// Relationships
+Author.hasMany(Book, { foreignKey: 'authorId', onDelete: 'CASCADE' });
+Book.belongsTo(Author, { foreignKey: 'authorId' });
 
-module.exports = {
-  Author,
-  Book,
-  sequelize,
+// Sync database
+const syncDatabase = async () => {
+  try {
+    await sequelize.sync({ alter: true });
+    console.log('Database synced successfully.');
+  } catch (error) {
+    console.error('Error syncing database:', error);
+  }
 };
+
+// Export models and sync function
+module.exports = { sequelize, Author, Book, syncDatabase };

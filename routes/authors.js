@@ -14,37 +14,101 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/authors/:id
-// TODO: Get single author with their books
+// Get single author with their books
 router.get('/:id', async (req, res) => {
   try {
-    // TODO: Implement (include books)
-    res.json({ message: 'Not implemented yet' });
+    const id = req.params.id;
+
+    const author = await Author.findByPk(id, {
+      include: Book,
+    });
+
+    if (!author) {
+      return res.status(404).json({ error: 'Author not found' });
+    }
+
+    res.status(200).json(author);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching author:', error);
+    res.status(500).json({ error: 'Failed to fetch author' });
   }
 });
 
 // POST /api/authors
-// TODO: Create new author (check email is unique)
+// Create new author (check email is unique)
 router.post('/', async (req, res) => {
   try {
-    // TODO: Implement
-    res.status(201).json({ message: 'Not implemented yet' });
+    const { name, email, bio, birthYear } = req.body;
+
+    // basic required fields
+    if (!name || !email) {
+      return res.status(400).json({ error: 'Name and email are required' });
+    }
+
+    const newAuthor = await Author.create({
+      name,
+      email,
+      bio,
+      birthYear,
+    });
+
+    res.status(201).json(newAuthor);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error creating author:', error);
+
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(e => e.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
+
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'Email already exists' });
+    }
+
+    res.status(500).json({ error: 'Failed to create author' });
   }
 });
 
+
 // PUT /api/authors/:id
-// TODO: Update author
+// Update author
 router.put('/:id', async (req, res) => {
   try {
-    // TODO: Implement
-    res.json({ message: 'Not implemented yet' });
+    const id = req.params.id;
+    const { name, email, bio, birthYear } = req.body;
+
+    // find the author
+    const author = await Author.findByPk(id);
+
+    if (!author) {
+      return res.status(404).json({ error: 'Author not found' });
+    }
+
+    // update only fields that are provided
+    author.name = name ?? author.name;
+    author.email = email ?? author.email;
+    author.bio = bio ?? author.bio;
+    author.birthYear = birthYear ?? author.birthYear;
+
+    await author.save();
+
+    res.status(200).json(author);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error updating author:', error);
+
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(e => e.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
+
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'Email already exists' });
+    }
+
+    res.status(500).json({ error: 'Failed to update author' });
   }
 });
+
 
 // DELETE /api/authors/:id
 // TODO: Delete author (BONUS: cascade deletes books if relationships set up)
