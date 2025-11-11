@@ -6,24 +6,23 @@ const { Author, Book } = require('../models');
 
 // GET /api/authors/:id
 // Get single author with their books
-router.get('/:id', async (req, res) => {
+// GET /api/authors
+// Get all authors (no books)
+router.get('/', async (req, res) => {
   try {
-    const id = req.params.id;
-
-    const author = await Author.findByPk(id, {
-      include: Book,
+    // Find all authors in the database
+    const authors = await Author.findAll({
+      order: [['id', 'ASC']], // optional: sort by id or name
     });
 
-    if (!author) {
-      return res.status(404).json({ error: 'Author not found' });
-    }
-
-    res.status(200).json(author);
+    // Send the list of authors as JSON
+    res.status(200).json(authors);
   } catch (error) {
-    console.error('Error fetching author:', error);
-    res.status(500).json({ error: 'Failed to fetch author' });
+    console.error('Error fetching authors:', error);
+    res.status(500).json({ error: 'Failed to fetch authors' });
   }
 });
+
 
 // POST /api/authors
 // Create new author (check email is unique)
