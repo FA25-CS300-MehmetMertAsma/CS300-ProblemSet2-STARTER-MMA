@@ -4,37 +4,54 @@ const { Op } = require('sequelize');
 const { Author, Book } = require('../models');
 
 // GET /api/books
-// TODO: Get all books with author info
-// HINT: ?year=2020 and ?author=Smith
 router.get('/', async (req, res) => {
   try {
-    // TODO: Implement (include author, handle year/author filters)
-    res.json({ message: 'Not implemented yet' });
+    const { year, author } = req.query;
+    const filter = {};
+    if (year) filter.year = Number(year);
+
+    let authorFilter = {};
+    if (author) authorFilter = { name: new RegExp(author, 'i') };
+
+    let authorIds = [];
+    if (author) {
+      const authors = await Author.find(authorFilter);
+      authorIds = authors.map(a => a._id);
+      filter.authorId = { $in: authorIds };
+    }
+
+    const books = await Book.find(filter).populate('authorId');
+    res.status(200).json(books);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // GET /api/books/:id
-// TODO: Get single book with author details
 router.get('/:id', async (req, res) => {
   try {
-    // TODO: Implement (include author)
-    res.json({ message: 'Not implemented yet' });
+    const book = await Book.findById(req.params.id).populate('authorId');
+    if (!book) return res.status(404).json({ error: 'Book not found' });
+    res.status(200).json(book);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // POST /api/books
-// TODO: Create new book (validate authorId exists)
 router.post('/', async (req, res) => {
   try {
-    // TODO: Implement
-    res.status(201).json({ message: 'Not implemented yet' });
+    const { title, year, authorId } = req.body;
+    const author = await Author.findById(authorId);
+    if (!author) return res.status(400).json({ error: 'Invalid authorId' });
+
+    const book = new Book({ title, year, authorId });
+    await book.save();
+    res.status(201).json(book);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 module.exports = router;
+

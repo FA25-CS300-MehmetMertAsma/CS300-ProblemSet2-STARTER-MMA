@@ -102,33 +102,50 @@ router.put('/:id', async (req, res) => {
 
 
 // DELETE /api/authors/:id
-// TODO: Delete author (BONUS: cascade deletes books if relationships set up)
+
 router.delete('/:id', async (req, res) => {
   try {
-    // TODO: Implement (return 204)
+    const { id } = req.params;
+    const author = await Author.findByPk(id);
+
+    if (!author) return res.status(404).json({ error: 'Author not found' });
+
+    await author.destroy();
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+
 // GET /api/authors/:authorId/books
-// TODO: Get all books for a specific author
 router.get('/:authorId/books', async (req, res) => {
   try {
-    // TODO: Implement
-    res.json({ message: 'Not implemented yet' });
+    const { authorId } = req.params;
+    const author = await Author.findByPk(authorId, {
+      include: [{ model: Book }],
+    });
+
+    if (!author) return res.status(404).json({ error: 'Author not found' });
+
+    res.json(author.Books);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+
 // POST /api/authors/:authorId/books
-// TODO: Create book for specific author (BONUS: validate authorId exists)
 router.post('/:authorId/books', async (req, res) => {
   try {
-    // TODO: Implement
-    res.status(201).json({ message: 'Not implemented yet' });
+    const { authorId } = req.params;
+    const { title, genre, publishedYear } = req.body;
+
+    const author = await Author.findByPk(authorId);
+    if (!author) return res.status(404).json({ error: 'Author not found' });
+
+    const book = await Book.create({ title, genre, publishedYear, authorId });
+    res.status(201).json(book);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
