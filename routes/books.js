@@ -6,10 +6,10 @@ const { Author, Book } = require('../models');
 // GET /api/books
 router.get('/', async (req, res) => {
   try {
-    const { year, author } = req.query;
+    const { publishedYear, author } = req.query;
     const filter = {};
 
-    if (year) filter.year = Number(year);
+    if (publishedYear) filter.publishedYear = Number(publishedYear);
 
     let authorFilter = {};
     if (author) authorFilter = { name: { [Op.like]: `%${author}%` } };
@@ -48,24 +48,27 @@ router.get('/:id', async (req, res) => {
 // POST /api/books
 router.post('/', async (req, res) => {
   try {
-    const { title, year, isbn, authorId } = req.body;
+    const { title, isbn, publishedYear, authorId } = req.body;
 
-    // Check if required fields are present
+    // Validate required fields
     if (!title || !isbn) {
       return res.status(400).json({ error: 'Title and ISBN are required' });
     }
 
-    // Verify author exists
+    // Check author
     const author = await Author.findByPk(authorId);
-    if (!author) return res.status(400).json({ error: 'Invalid authorId' });
+    if (!author) {
+      return res.status(400).json({ error: 'Invalid authorId' });
+    }
 
     // Create new book
-    const book = await Book.create({ title, year, isbn, authorId });
-    res.status(201).json(book);
+    const newBook = await Book.create({ title, isbn, publishedYear, authorId });
+    res.status(201).json(newBook);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 module.exports = router;
+
 
