@@ -138,16 +138,44 @@ router.get('/:authorId/books', async (req, res) => {
 router.post('/:authorId/books', async (req, res) => {
   try {
     const { authorId } = req.params;
-    const { title, genre, publishedYear } = req.body;
+    const { title, isbn, publishedYear } = req.body;
+
+    if (!title || !isbn) {
+      return res.status(400).json({ error: 'Title and ISBN are required' });
+    }
+
+    if (typeof isbn !== 'string' || isbn.length !== 13) {
+      return res.status(400).json({ error: 'ISBN must be exactly 13 characters' });
+    }
 
     const author = await Author.findByPk(authorId);
-    if (!author) return res.status(404).json({ error: 'Author not found' });
+    if (!author) {
+      return res.status(404).json({ error: 'Author not found' });
+    }
 
-    const book = await Book.create({ title, genre, publishedYear, authorId });
+    const book = await Book.create({
+      title,
+      isbn,
+      publishedYear: publishedYear ?? null,
+      authorId: Number(authorId),
+    });
+
     res.status(201).json(book);
   } catch (error) {
+    console.error('Error creating book:', error);
+
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(e => e.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
+
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'ISBN must be unique' });
+    }
+
     res.status(500).json({ error: error.message });
   }
 });
+
 
 module.exports = router;
