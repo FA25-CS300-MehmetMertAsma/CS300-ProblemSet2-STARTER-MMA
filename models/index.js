@@ -3,8 +3,8 @@ const Author = require('./Author');
 const Book = require('./Book');
 
 // Relationships
-Author.hasMany(Book, { foreignKey: 'authorId', onDelete: 'CASCADE' });
-Book.belongsTo(Author, { foreignKey: 'authorId' });
+Author.hasMany(Book, { foreignKey: 'authorId', as: 'books', onDelete: 'CASCADE' });
+Book.belongsTo(Author, { foreignKey: 'authorId', as: 'author' });
 
 // Sync database
 const syncDatabase = async () => {
