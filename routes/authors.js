@@ -5,11 +5,10 @@ const { Author, Book } = require('../models');
 // GET /api/authors — get all authors with their books
 router.get('/', async (req, res) => {
   try {
-    const authors = await Author.findAll({
-    });
+    const authors = await Author.findAll({});
     res.status(200).json(authors);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -20,11 +19,11 @@ router.get('/:id', async (req, res) => {
       include: { model: Book, as: 'books' },
     });
     if (!author) {
-      return res.status(404).json({ error: 'Status 404 Not Found' });
+      return res.status(404).json({ error: 'Author not found' });
     }
     res.status(200).json(author);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -35,13 +34,13 @@ router.post('/', async (req, res) => {
 
     const existing = await Author.findOne({ where: { email } });
     if (existing) {
-      return res.status(409).json({ error: 'Email already exists' });
+      return res.status(400).json({ error: 'Email already exists' });
     }
 
     const author = await Author.create({ name, email, bio, birthYear });
     res.status(201).json(author);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -58,7 +57,7 @@ router.put('/:id', async (req, res) => {
     await author.update({ name, email, bio, birthYear });
     res.status(200).json(author);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -73,7 +72,7 @@ router.delete('/:id', async (req, res) => {
     await author.destroy();
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -85,7 +84,7 @@ router.get('/:authorId/books', async (req, res) => {
     });
     res.status(200).json(books);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -117,13 +116,13 @@ router.post('/:authorId/books', async (req, res) => {
     res.status(201).json(book);
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(409).json({ error: 'ISBN must be unique' });
+      return res.status(400).json({ error: 'ISBN must be unique' });
     }
     if (error.name === 'SequelizeValidationError') {
       const messages = error.errors.map(e => e.message);
       return res.status(400).json({ error: messages.join(', ') });
     }
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
