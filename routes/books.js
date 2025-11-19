@@ -1,41 +1,51 @@
 const express = require('express');
 const router = express.Router();
 const { Book, Author } = require('../models');
+const { Op } = require('sequelize');
 
-// GET /api/books — get all books with their authors
+// GET /api/books — get all books with optional filter by year
 router.get('/', async (req, res) => {
   try {
     const { year } = req.query;
-const where = {};
-if (year) where.publishedYear = year;
+
+    const whereBook = {};
+    if (year) whereBook.publishedYear = year;
 
     const books = await Book.findAll({
-      where,
+      where: whereBook,
       include: { model: Author, as: 'author' },
     });
+
     res.status(200).json(books);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-
-// GET /api/books/:id — get one book with author
-router.get('/:id', async (req, res) => {
+// GET /api/books/author/:lastName — get books by author last name
+router.get('/author/:lastName', async (req, res) => {
   try {
-    const book = await Book.findByPk(req.params.id, {
-      include: { model: Author, as: 'author' },
+    const { lastName } = req.params;
+
+    const books = await Book.findAll({
+      include: {
+        model: Author,
+        as: 'author',
+        where: {
+          name: { [Op.iLike]: `%${lastName}` } // case-insensitive match for last name
+        },
+      },
     });
 
-    if (!book) return res.status(404).json({ error: 'Book not found' });
-    res.status(200).json(book);
+    if (!books.length) return res.status(404).json({ error: 'No books found for this author' });
+
+    res.status(200).json(books);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/books — disabled here
-// Books must be created using POST /api/authors/:authorId/books
+// POST /api/books — disabled
 router.post('/', async (req, res) => {
   res.status(400).json({
     error: 'To create a book, use POST /api/authors/:authorId/books'
