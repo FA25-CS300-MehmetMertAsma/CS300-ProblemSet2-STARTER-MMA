@@ -5,7 +5,12 @@ const { Book, Author } = require('../models');
 // GET /api/books — get all books with their authors
 router.get('/', async (req, res) => {
   try {
+    const { year } = req.query;
+const where = {};
+if (year) where.publishedYear = year;
+
     const books = await Book.findAll({
+      where,
       include: { model: Author, as: 'author' },
     });
     res.status(200).json(books);
@@ -13,6 +18,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // GET /api/books/:id — get one book with author
 router.get('/:id', async (req, res) => {

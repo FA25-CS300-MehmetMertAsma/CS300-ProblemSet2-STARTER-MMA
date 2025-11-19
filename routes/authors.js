@@ -6,7 +6,6 @@ const { Author, Book } = require('../models');
 router.get('/', async (req, res) => {
   try {
     const authors = await Author.findAll({
-      include: { model: Book, as: 'books' },
     });
     res.status(200).json(authors);
   } catch (error) {
@@ -21,7 +20,7 @@ router.get('/:id', async (req, res) => {
       include: { model: Book, as: 'books' },
     });
     if (!author) {
-      return res.status(404).json({ error: 'Author not found' });
+      return res.status(404).json({ error: 'Status 404 Not Found' });
     }
     res.status(200).json(author);
   } catch (error) {
