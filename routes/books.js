@@ -25,14 +25,14 @@ router.get('/', async (req, res) => {
 // GET /api/books/author/:lastName — get books by author last name
 router.get('/author/:lastName', async (req, res) => {
   try {
-    const { lastName } = req.params;
+    const { lastName } = req.params.lastName;
 
     const books = await Book.findAll({
       include: {
         model: Author,
         as: 'author',
         where: {
-          name: { [Op.iLike]: `%${lastName}` } // case-insensitive match for last name
+          name: { [Op.Like]: `%${lastName}` } // case-insensitive match for last name
         },
       },
     });
